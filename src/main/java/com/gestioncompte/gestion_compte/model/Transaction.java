@@ -26,7 +26,7 @@ public class Transaction {
     private LocalDateTime transactionDate = LocalDateTime.now();
 
 
-    public Transaction(){
+    public Transaction(Account account, com.gestioncompte.gestion_compte.model.TransactionType withdrawal, BigDecimal amount, BigDecimal balance){
 
     }
 

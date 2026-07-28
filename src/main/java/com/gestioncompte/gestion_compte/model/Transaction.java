@@ -1,5 +1,6 @@
 package com.gestioncompte.gestion_compte.model;
 
+import com.gestioncompte.gestion_compte.model.TransactionType;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -26,8 +27,10 @@ public class Transaction {
     private LocalDateTime transactionDate = LocalDateTime.now();
 
 
-    public Transaction(Account account, com.gestioncompte.gestion_compte.model.TransactionType withdrawal, BigDecimal amount, BigDecimal balance){
-
+//    public Transaction(Account account, com.gestioncompte.gestion_compte.model.TransactionType withdrawal, BigDecimal amount, BigDecimal balance){
+//
+//    }
+    public Transaction() {
     }
 
     public Transaction(Account account, TransactionType type, BigDecimal amount, BigDecimal balanceAfterTransaction){
@@ -65,11 +68,7 @@ public class Transaction {
         return transactionDate;
     }
 
-
-    public enum TransactionType {
-        DEPOSIT,
-        WITHDRAWAL,
-        TRANSFERT_OUT,
-        TRANSFERT_IN
+    public void setAccountLinkedNumber(String accountLinkedNumber) {
+        this.accountLinkedNumber = accountLinkedNumber;
     }
 }

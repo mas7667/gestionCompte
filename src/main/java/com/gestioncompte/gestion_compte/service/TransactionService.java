@@ -73,11 +73,11 @@ public class TransactionService {
         accountService.save(destination);
 
         Transaction outgoing = new Transaction(source, TransactionType.TRANSFER_OUT, amount, source.getBalance());
-        outgoing.setLinkedAccountNumber(destination.getAccountNumber());
+        outgoing.setAccountLinkedNumber(destination.getAccountNumber());
         transactionRepository.save(outgoing);
 
         Transaction incoming = new Transaction(destination, TransactionType.TRANSFER_IN, amount, destination.getBalance());
-        incoming.setLinkedAccountNumber(source.getAccountNumber());
+        incoming.setAccountLinkedNumber(source.getAccountNumber());
         transactionRepository.save(incoming);
     }
 

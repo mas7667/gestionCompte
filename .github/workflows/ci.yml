@@ -36,6 +36,28 @@ jobs:
           path: '**/surefire-reports/*.xml'
           reporter: java-junit
 
+  promote-to-test:
+    needs: build-and-test
+    if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configurer Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fusionner dev dans test
+        run: |
+          git checkout test
+          git merge origin/dev --no-edit
+          git push origin test
+        
+
   build-docker-image:
     needs: build-and-test
     if: github.ref == 'refs/heads/test' || github.ref == 'refs/heads/main'
@@ -68,4 +90,4 @@ jobs:
 
     steps:
       - name: Déploiement
-        run: echo "Étape de déploiement à configurer une fois l'hébergeur choisi (Render/Railway)"
+        run: echo " Déploiement "

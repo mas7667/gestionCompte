@@ -36,6 +36,29 @@ jobs:
           path: '**/surefire-reports/*.xml'
           reporter: java-junit
 
+  promote-to-test:
+    needs: build-and-test
+    if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Créer la Pull Request dev → test
+        run: |
+          gh pr create \
+            --base test \
+            --head dev \
+            --title "Promotion automatique : dev → test" \
+            --body "PR créée automatiquement après succès du build-and-test sur dev." \
+            || echo "Une PR existe peut-être déjà, on continue."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
   build-docker-image:
     needs: build-and-test
     if: github.ref == 'refs/heads/test' || github.ref == 'refs/heads/main'
@@ -68,4 +91,4 @@ jobs:
 
     steps:
       - name: Déploiement
-        run: echo "Étape de déploiement à configurer une fois l'hébergeur choisi (Render/Railway)"
+        run: echo " Déploiement "

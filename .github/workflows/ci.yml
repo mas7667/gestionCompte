@@ -40,23 +40,24 @@ jobs:
     needs: build-and-test
     if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - name: Checkout du code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Configurer Git
+      - name: Créer la Pull Request dev → test
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          gh pr create \
+            --base test \
+            --head dev \
+            --title "Promotion automatique : dev → test" \
+            --body "PR créée automatiquement après succès du build-and-test sur dev." \
+            || echo "Une PR existe peut-être déjà, on continue."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Fusionner dev dans test
-        run: |
-          git checkout test
-          git merge origin/dev --no-edit
-          git push origin test
-        
 
   build-docker-image:
     needs: build-and-test

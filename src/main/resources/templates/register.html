@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Inscription — GestionCompte</title>
+</head>
+<body>
+<h1>Créer un compte</h1>
+
+<form id="registerForm">
+    <label>Nom complet : <input type="text" id="fullName" required></label><br>
+    <label>Email : <input type="email" id="email" required></label><br>
+    <label>Mot de passe : <input type="password" id="password" required minlength="8"></label><br>
+    <button type="submit">S'inscrire</button>
+</form>
+
+<p id="errorMessage" style="color: red;"></p>
+
+<script>
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const fullName = document.getElementById('fullName').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        try {
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fullName, email, password })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                document.getElementById('errorMessage').textContent = error.message || 'Erreur lors de l\'inscription.';
+                return;
+            }
+
+            const data = await response.json();
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('accountNumber', data.accountNumber);
+
+            window.location.href = '/dashboard';
+        } catch (err) {
+            document.getElementById('errorMessage').textContent = 'Erreur réseau.';
+        }
+    });
+</script>
+</body>
+</html>

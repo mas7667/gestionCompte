@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion — GestionCompte</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        desjardins: { 50: '#EAF7EF', 500: '#00A651', 600: '#00854E', 700: '#00693E', 900: '#00341C' },
+                        neutral: { 100: '#F4F6F5', 600: '#5B615D', 900: '#1A1D1B' },
+                        error: { 700: '#B3261E' }
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"IBM Plex Mono"', 'monospace'] }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Inter', sans-serif; }</style>
+</head>
+<body class="min-h-screen bg-neutral-100 text-neutral-900 flex items-center justify-center p-4">
+
+<a href="#main" class="sr-only focus:not-sr-only fixed top-2 left-2 bg-desjardins-700 text-white px-4 py-2 rounded z-50">
+    Aller au contenu principal
+</a>
+
+<main id="main" class="w-full max-w-md">
+    <div class="bg-white rounded-xl shadow-sm border border-neutral-100 overflow-hidden">
+        <div class="h-1.5 bg-gradient-to-r from-desjardins-500 to-desjardins-700"></div>
+
+        <div class="p-8">
+            <h1 class="text-2xl font-bold text-desjardins-900 mb-1">Se connecter</h1>
+            <p class="text-neutral-600 text-sm mb-6">Accédez à votre compte GestionCompte.</p>
+
+            <form id="loginForm" class="space-y-4" novalidate>
+                <div>
+                    <label for="email" class="block text-sm font-medium text-neutral-900 mb-1">Courriel</label>
+                    <input type="email" id="email" name="email" required autocomplete="email"
+                           class="w-full rounded-lg border border-neutral-600/30 px-4 py-2.5 text-neutral-900 focus:outline-none focus:ring-2 focus:ring-desjardins-600 focus:border-desjardins-600">
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-medium text-neutral-900 mb-1">Mot de passe</label>
+                    <input type="password" id="password" name="password" required autocomplete="current-password"
+                           class="w-full rounded-lg border border-neutral-600/30 px-4 py-2.5 text-neutral-900 focus:outline-none focus:ring-2 focus:ring-desjardins-600 focus:border-desjardins-600">
+                </div>
+
+                <div role="alert" aria-live="polite" id="errorMessage" class="text-error-700 text-sm min-h-[1.25rem]"></div>
+
+                <button type="submit"
+                        class="w-full bg-desjardins-700 hover:bg-desjardins-900 text-white font-semibold py-2.5 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-desjardins-600 focus:ring-offset-2">
+                    Se connecter
+                </button>
+            </form>
+
+            <p class="text-sm text-neutral-600 mt-6 text-center">
+                Pas encore de compte ?
+                <a href="/register" class="text-desjardins-700 font-medium hover:underline focus:outline-none focus:ring-2 focus:ring-desjardins-600 rounded">S'inscrire</a>
+            </p>
+        </div>
+    </div>
+</main>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const errorEl = document.getElementById('errorMessage');
+        errorEl.textContent = '';
+
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                errorEl.textContent = error.message || 'Identifiants invalides.';
+                return;
+            }
+
+            const data = await response.json();
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('accountNumber', data.accountNumber);
+            window.location.href = '/dashboard';
+        } catch (err) {
+            errorEl.textContent = 'Erreur réseau. Vérifiez votre connexion et réessayez.';
+        }
+    });
+</script>
+</body>
+</html>

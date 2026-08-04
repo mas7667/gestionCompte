@@ -9,6 +9,7 @@ on:
 permissions:
   contents: write
   packages: write
+  pull-requests: write
 
 jobs:
   build-and-test:
@@ -39,21 +40,21 @@ jobs:
     needs: build-and-test
     if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
     steps:
       - name: Checkout du code
         uses: actions/checkout@v5
 
-      - name: Créer la Pull Request dev → test
+      - name: Créer et auto-fusionner la PR dev → test
         run: |
           gh pr create \
             --base test \
             --head dev \
             --title "Promotion automatique : dev → test" \
-            --body "PR créée automatiquement après succès du build-and-test sur dev." \
+            --body "PR créée et fusionnée automatiquement après succès du build-and-test sur dev." \
             || echo "Une PR existe peut-être déjà, on continue."
+
+          gh pr merge dev --squash --auto \
+            || gh pr merge --squash --auto --head dev --base test
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -80,6 +81,28 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/gestion-compte:${{ github.ref_name }}
             ghcr.io/${{ github.repository_owner }}/gestion-compte:${{ github.sha }}
+
+  promote-to-main:
+    needs: build-docker-image
+    if: github.ref == 'refs/heads/test' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v5
+
+      - name: Créer et auto-fusionner la PR test → main
+        run: |
+          gh pr create \
+            --base main \
+            --head test \
+            --title "Promotion automatique : test → main" \
+            --body "PR créée et fusionnée automatiquement après succès du build-docker-image sur test." \
+            || echo "Une PR existe peut-être déjà, on continue."
+
+          gh pr merge test --squash --auto \
+            || gh pr merge --squash --auto --head test --base main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   deploy:
     needs: build-docker-image

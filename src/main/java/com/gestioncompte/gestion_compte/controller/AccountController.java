@@ -1,6 +1,6 @@
 package com.gestioncompte.gestion_compte.controller;
 
-import com.gestioncompte.gestion_compte.model.Account;
+import com.gestioncompte.gestion_compte.dto.AccountResponse;
 import com.gestioncompte.gestion_compte.service.AccountService;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,12 +17,14 @@ public class AccountController {
     }
 
     @GetMapping("/{accountNumber}")
-    public Account getAccount(@PathVariable String accountNumber) {
-        return accountService.getByAccountNumber(accountNumber);
+    public AccountResponse getAccount(@PathVariable String accountNumber) {
+        return AccountResponse.fromEntity(accountService.getByAccountNumber(accountNumber));
     }
 
     @GetMapping("/client/{clientId}")
-    public List<Account> listAccountsForClient(@PathVariable Long clientId) {
-        return accountService.listAccountsForClient(clientId);
+    public List<AccountResponse> listAccountsForClient(@PathVariable Long clientId) {
+        return accountService.listAccountsForClient(clientId).stream()
+                .map(AccountResponse::fromEntity)
+                .toList();
     }
 }

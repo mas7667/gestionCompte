@@ -15,7 +15,7 @@ public class Account {
     private long id;
 
     @Column(unique = true, nullable = false, updatable = false)
-    private String numeroCompte = UUID.randomUUID().toString().substring(0, 12).toUpperCase();
+    private String accountNumber = UUID.randomUUID().toString().substring(0, 12).toUpperCase();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id")
@@ -37,7 +37,7 @@ public class Account {
     }
 
     public String getAccountNumber() {
-        return this.numeroCompte;
+        return this.accountNumber;
     }
 
     public Client getClient() {

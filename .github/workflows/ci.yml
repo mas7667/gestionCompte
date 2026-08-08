@@ -44,7 +44,7 @@ jobs:
       - name: Checkout du code
         uses: actions/checkout@v5
 
-      - name: Créer et auto-fusionner la PR dev → test
+      - name: Créer la PR dev → test si nécessaire
         run: |
           gh pr create \
             --base test \
@@ -52,9 +52,11 @@ jobs:
             --title "Promotion automatique : dev → test" \
             --body "PR créée et fusionnée automatiquement après succès du build-and-test sur dev." \
             || echo "Une PR existe peut-être déjà, on continue."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-          gh pr merge dev --squash --auto \
-            || gh pr merge --squash --auto --head dev --base test
+      - name: Fusionner immédiatement dev → test
+        run: gh pr merge dev --merge --delete-branch=false
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -90,7 +92,7 @@ jobs:
       - name: Checkout du code
         uses: actions/checkout@v5
 
-      - name: Créer et auto-fusionner la PR test → main
+      - name: Créer la PR test → main si nécessaire
         run: |
           gh pr create \
             --base main \
@@ -98,9 +100,11 @@ jobs:
             --title "Promotion automatique : test → main" \
             --body "PR créée et fusionnée automatiquement après succès du build-docker-image sur test." \
             || echo "Une PR existe peut-être déjà, on continue."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-          gh pr merge test --squash --auto \
-            || gh pr merge --squash --auto --head test --base main
+      - name: Fusionner immédiatement test → main
+        run: gh pr merge test --merge --delete-branch=false
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

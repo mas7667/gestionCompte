@@ -5,6 +5,7 @@ import com.gestioncompte.gestion_compte.service.AccountService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/accounts")
@@ -17,13 +18,13 @@ public class AccountController {
     }
 
     @GetMapping("/{accountNumber}")
-    public AccountResponse getAccount(@PathVariable String accountNumber) {
-        return AccountResponse.fromEntity(accountService.getByAccountNumber(accountNumber));
+    public AccountResponse getAccount(@PathVariable String accountNumber, Authentication authentication) {
+        return AccountResponse.fromEntity(accountService.getOwnedAccount(accountNumber, authentication.getName()));
     }
 
-    @GetMapping("/client/{clientId}")
-    public List<AccountResponse> listAccountsForClient(@PathVariable Long clientId) {
-        return accountService.listAccountsForClient(clientId).stream()
+    @GetMapping("/me")
+    public List<AccountResponse> listMyAccounts(Authentication authentication) {
+        return accountService.listAccountsForEmail(authentication.getName()).stream()
                 .map(AccountResponse::fromEntity)
                 .toList();
     }

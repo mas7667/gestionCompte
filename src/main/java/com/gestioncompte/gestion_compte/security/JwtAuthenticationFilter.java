@@ -1,7 +1,6 @@
 package com.gestioncompte.gestion_compte.security;
 
 import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

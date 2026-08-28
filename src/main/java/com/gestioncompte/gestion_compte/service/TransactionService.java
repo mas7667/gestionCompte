@@ -35,6 +35,16 @@ public class TransactionService {
     }
 
     @Transactional
+    public Transaction depositFor(String email, String accountNumber, BigDecimal amount) {
+        validatePositiveAmount(amount);
+        Account account = accountService.getOwnedAccount(accountNumber, email);
+        account.setBalance(account.getBalance().add(amount));
+        accountService.save(account);
+        return transactionRepository.save(
+                new Transaction(account, TransactionType.DEPOSIT, amount, account.getBalance()));
+    }
+
+    @Transactional
     public Transaction withdraw(String accountNumber, BigDecimal amount) {
         validatePositiveAmount(amount);
         Account account = accountService.getByAccountNumber(accountNumber);
@@ -49,6 +59,19 @@ public class TransactionService {
 
         Transaction transaction = new Transaction(account, TransactionType.WITHDRAWAL, amount, account.getBalance());
         return transactionRepository.save(transaction);
+    }
+
+    @Transactional
+    public Transaction withdrawFor(String email, String accountNumber, BigDecimal amount) {
+        validatePositiveAmount(amount);
+        Account account = accountService.getOwnedAccount(accountNumber, email);
+        if (account.getBalance().compareTo(amount) < 0) {
+            throw new IllegalStateException("Insufficient balance. Current balance: " + account.getBalance());
+        }
+        account.setBalance(account.getBalance().subtract(amount));
+        accountService.save(account);
+        return transactionRepository.save(
+                new Transaction(account, TransactionType.WITHDRAWAL, amount, account.getBalance()));
     }
 
     @Transactional
@@ -81,7 +104,39 @@ public class TransactionService {
         transactionRepository.save(incoming);
     }
 
+    @Transactional
+    public void transferFor(String email, String sourceAccountNumber, String destinationAccountNumber, BigDecimal amount) {
+        validatePositiveAmount(amount);
+        if (sourceAccountNumber.equals(destinationAccountNumber)) {
+            throw new IllegalArgumentException("Source and destination accounts must be different.");
+        }
+
+        Account source = accountService.getOwnedAccount(sourceAccountNumber, email);
+        Account destination = accountService.getByAccountNumber(destinationAccountNumber);
+        if (source.getBalance().compareTo(amount) < 0) {
+            throw new IllegalStateException("Insufficient balance for transfer. Current balance: " + source.getBalance());
+        }
+
+        source.setBalance(source.getBalance().subtract(amount));
+        destination.setBalance(destination.getBalance().add(amount));
+        accountService.save(source);
+        accountService.save(destination);
+
+        Transaction outgoing = new Transaction(source, TransactionType.TRANSFER_OUT, amount, source.getBalance());
+        outgoing.setAccountLinkedNumber(destination.getAccountNumber());
+        transactionRepository.save(outgoing);
+
+        Transaction incoming = new Transaction(destination, TransactionType.TRANSFER_IN, amount, destination.getBalance());
+        incoming.setAccountLinkedNumber(source.getAccountNumber());
+        transactionRepository.save(incoming);
+    }
+
     public Page<Transaction> getHistory(Long accountId, Pageable pageable) {
+        return transactionRepository.findByAccountIdOrderByTransactionDateDesc(accountId, pageable);
+    }
+
+    public Page<Transaction> getHistoryFor(String email, Long accountId, Pageable pageable) {
+        accountService.getOwnedAccount(accountId, email);
         return transactionRepository.findByAccountIdOrderByTransactionDateDesc(accountId, pageable);
     }
 
